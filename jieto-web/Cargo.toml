@@ -1,0 +1,35 @@
+[package]
+name = "jieto-web"
+version = "0.1.0"
+edition = "2024"
+authors = [
+    "fanxing <fanxingitn@outlook.com>",
+    "Lauset <liujie_783@163.com>",
+]
+description = "A Web Starter Based on Actix-Web"
+documentation = "https://docs.rs/jieto-web"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/fanxing782/jieto.git"
+
+[features]
+database = ["dep:jieto-db"]
+mysql = ["dep:sqlx","jieto-db/mysql"]
+sqlite = ["dep:sqlx","jieto-db/sqlite"]
+postgres = ["dep:sqlx","jieto-db/postgres"]
+redis = ["dep:deadpool-redis", "jieto-db/redis"]
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+log = { workspace = true }
+toml = { workspace = true }
+actix-web = { workspace = true }
+time = { workspace = true }
+flexi_logger = { workspace = true }
+deadpool-redis = { workspace = true, optional = true }
+
+jieto-db = { path = "../jieto-db", optional = true }
+sqlx = {workspace = true,optional = true}

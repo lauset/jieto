@@ -1,0 +1,40 @@
+# Build artifacts (applies recursively)
+target/
+debug/
+release/
+
+# Temporary directories
+tmp/
+temp/
+**/tmp/
+**/temp/
+
+# Logs
+*.log
+logs/
+
+# Local config
+.env
+.env.local
+
+# Rust
+**/*.rs.bk
+**/*.pdb
+Cargo.lock  # 如果是库项目保留，二进制项目可忽略
+**/*.lock
+# Dependencies
+node_modules/
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+\#*\#
+.DS_Store
+
+# Database / config files (if not meant to be shared)
+db.toml
+application.toml
+/Cargo.lock

@@ -1,0 +1,35 @@
+[package]
+name = "jieto-db"
+version = "0.1.0"
+edition = "2024"
+authors = [
+    "fanxing <fanxingitn@outlook.com>",
+    "Lauset <liujie_783@163.com>",
+]
+description = "Obtain data source connection pools from the configuration file."
+documentation = "https://docs.rs/jieto-db"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/fanxing782/jieto.git"
+
+[features]
+default = ["mysql"]
+mysql = ["sqlx/mysql"]
+sqlite = ["sqlx/sqlite"]
+postgres = ["sqlx/postgres"]
+redis = ["dep:deadpool-redis"]
+
+[dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+log = { workspace = true }
+async-trait = { workspace = true }
+toml = { workspace = true }
+urlencoding = { workspace = true }
+secrecy = { workspace = true }
+num_cpus = { workspace = true }
+paste = { workspace = true }
+sqlx = { workspace = true, optional = true }
+deadpool-redis = { workspace = true, optional = true }
+serde = {workspace = true}
