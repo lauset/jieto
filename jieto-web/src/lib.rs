@@ -104,7 +104,7 @@ pub enum WebError {
     #[cfg(feature = "database")]
     #[error("[DB]:{0}")]
     DataSource(#[from] jieto_db::error::DbError),
-    #[cfg(feature = "database")]
+    #[cfg(any(feature = "mysql", feature = "postgres", feature = "sqlite"))]
     #[error("[EX]:{0}")]
     Execution(#[from] sqlx::Error),
     #[error("[AU]:{0}")]
@@ -117,7 +117,9 @@ impl ResponseError for WebError {
         match self {
             WebError::Web(_) =>actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
             #[cfg(feature = "database")]
-            WebError::DataSource(_) | WebError::Execution(_) =>actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+            WebError::DataSource(_) =>actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+            #[cfg(any(feature = "mysql", feature = "postgres", feature = "sqlite"))]
+            WebError::Execution(_) =>actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
             #[cfg(feature = "auth")]
             WebError::Auth(_) =>actix_web::http::StatusCode::FORBIDDEN,
             WebError::Business(..) => actix_web::http::StatusCode::default(),

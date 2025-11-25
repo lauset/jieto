@@ -35,6 +35,7 @@ password = "******"
 database = "******"
 schema = "******"
 
+
 [[redis]]
 name = "redis"
 host = "******"
@@ -45,7 +46,24 @@ db = 1
 ```
 
 ## 使用方法
+
+初始化数据库连接
+
 ```rust
 let db_manager = jieto_db::jieto_db_init("db.toml").await?;
+```
+
+获取 `MySQL` 连接池
+
+```rust
 let pool = db_manager.with_mysql_default()?;
+```
+
+获取 `Redis` 连接池
+
+```rust
+let pool = data.db_manager.with_redis_default()?;
+
+// 获取连接
+let mut conn = pool.get().await.unwrap();
 ```
