@@ -1,7 +1,7 @@
-# jieto-db
+# jieto-web
 
 ## 配置文件 （application.toml）
-```rust
+```toml
 name="test"
 [web]
 port = 9903
