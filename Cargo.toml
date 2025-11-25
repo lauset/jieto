@@ -1,5 +1,11 @@
 [workspace]
-members = ["example", "jieto-auth", "jieto-db","jieto-web"]
+members = [
+    "example",
+    "jieto-auth",
+    "jieto-db",
+    "jieto-web",
+    "jieto-ws"
+]
 
 [workspace.dependencies]
 anyhow = "1.0.100"
@@ -16,5 +22,8 @@ num_cpus = "1.17.0"
 secrecy = "0.10.3"
 paste = "1.0.15"
 time = { version = "0.3.44", features = ["formatting", "local-offset"] }
+futures-util = { version = "0.3.17", default-features = false, features = ["std"] }
 flexi_logger = "0.31.7"
+rand = "0.9"
 actix-web = "4"
+actix-ws = "0.3"
