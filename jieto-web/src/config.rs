@@ -1,11 +1,13 @@
 use serde::Deserialize;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
+
 #[derive(Deserialize, Debug, Default)]
 pub(crate) struct ApplicationConfig {
     pub name: Option<String>,
     pub web: Web,
     pub log: Log,
+    pub ws: Ws,
 }
 
 #[derive(Deserialize, Debug, Default)]
@@ -23,6 +25,13 @@ pub(crate) struct Log {
     pub age: Option<String>,
     pub keep_files: usize,
     pub level: Option<String>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub(crate) struct Ws {
+    #[serde(default)]
+    pub path: Option<String>,
+    pub heartbeat_interval: Option<u64>,
 }
 
 impl ApplicationConfig {
