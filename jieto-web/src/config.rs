@@ -7,6 +7,7 @@ pub(crate) struct ApplicationConfig {
     pub name: Option<String>,
     pub web: Web,
     pub log: Log,
+    #[cfg(feature = "ws")]
     pub ws: Ws,
 }
 
@@ -27,6 +28,7 @@ pub(crate) struct Log {
     pub level: Option<String>,
 }
 
+#[cfg(feature = "ws")]
 #[derive(Deserialize, Debug, Default)]
 pub(crate) struct Ws {
     #[serde(default)]

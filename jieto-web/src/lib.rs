@@ -1,17 +1,18 @@
+use std::env;
 use crate::config::ApplicationConfig;
 use crate::error::WebError;
 use crate::log4r::init_logger;
 use actix_cors::Cors;
 use actix_web::web::ServiceConfig;
-use actix_web::{App, HttpResponse, HttpServer, Responder, ResponseError, web};
+use actix_web::{App, HttpResponse, HttpServer, Responder, web};
 use jieto_db::database::DbManager;
 use serde::Serialize;
 use std::sync::{Arc, OnceLock};
 
-mod config;
-mod error;
+pub mod config;
+pub mod error;
 mod log4r;
-mod resp;
+pub mod resp;
 
 #[cfg(feature = "job")]
 pub mod job;
@@ -170,4 +171,115 @@ where
     }
 
     Ok(())
+}
+
+
+
+
+pub trait AppInitializing{
+    fn initializing(&self);
+}
+
+pub struct Application<I, F>
+where
+    I: AppInitializing,
+    F: Fn(&mut ServiceConfig) + Send + Clone + 'static,
+{
+    cfg:F,
+    init:Vec<I>
+}
+
+impl <I, F> Application<I, F>
+where
+    I: AppInitializing,
+    F: Fn(&mut ServiceConfig) + Send + Clone + 'static,
+{
+
+    pub fn new(cfg:F)->Self{
+        Self{
+            cfg,
+            init:vec![],
+        }
+    }
+
+
+    pub fn bind_init(mut self,init:I)->Self{
+        self.init.push(init);
+        self
+    }
+
+
+    pub async fn run(mut self) ->anyhow::Result<()>{
+        let config_path = env::var("APP_CONFIG")
+            .or_else(|_| env::var("CONFIG_PATH"))
+            .unwrap_or_else(|_| "application.toml".to_string()); // 默认路径
+        let config = ApplicationConfig::from_toml(&config_path).await?;
+        let mut state = AppState::default();
+        init_logger(&config.log, &config.name.unwrap_or(String::from("app")))?;
+
+
+
+        #[cfg(feature = "ws")]
+        let ws_handle = {
+            let (ws_server, server_tx) = jieto_ws::WsServer::new();
+            let ws_server_handle = tokio::task::spawn(ws_server.run());
+            state.with_ws(server_tx);
+            ws_server_handle
+        };
+
+
+        #[cfg(feature = "database")]
+        {
+            let db_manager = jieto_db::jieto_db_init(&config_path).await?;
+            let db_manager = Arc::new(db_manager);
+            let db_manager = GLOBAL_DBMANAGER.get_or_init(|| db_manager);
+            state.with_db(db_manager.clone());
+        }
+
+        let app_state = web::Data::new(state);
+        let cfg_fn = self.cfg.clone();
+
+        while let Some(top) = self.init.pop() {
+            top.initializing();
+        }
+
+
+
+        let server = HttpServer::new(move || {
+            let cors = Cors::default()
+                .allow_any_origin() // 允许任意域名（仅开发用！）
+                .allow_any_method()
+                .allow_any_header()
+                .supports_credentials() // 如果需要携带 cookie
+                .max_age(3600);
+
+            App::new()
+                .app_data(app_state.clone())
+                .wrap(cors)
+                .wrap(actix_web::middleware::Logger::default())
+                .configure(|cfg| {
+                    #[cfg(feature = "ws")]
+                    {
+                        use crate::ws::configure_ws;
+                        configure_ws(cfg, config.ws.path.as_deref());
+                    }
+
+                   cfg_fn(cfg)
+                })
+        })
+            .bind(("0.0.0.0", config.web.port))?
+            .run();
+
+        #[cfg(feature = "ws")]
+        {
+            tokio::try_join!(server, async move { ws_handle.await.unwrap() })?;
+        }
+
+        #[cfg(not(feature = "ws"))]
+        {
+            server.await?;
+        }
+
+        Ok(())
+    }
 }
