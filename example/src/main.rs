@@ -1,11 +1,12 @@
 mod error;
 
+use jieto_web::job::ScheduledTask;
 use actix_web::{get, web};
 use deadpool_redis::redis::cmd;
-// use jieto_web::job::{ScheduledTask, scheduled, task};
-use jieto_web::{ApiResult, AppState, JietoResult, jieto_web_start};
+use jieto_web::{ApiResult, AppInitializing, AppState, Application, JietoResult};
 use serde::Serialize;
 use sqlx::FromRow;
+use jieto_macros::{scheduled, task};
 
 #[derive(FromRow, Debug, Serialize)]
 pub struct User {
@@ -39,27 +40,28 @@ async fn redis_test(data: web::Data<AppState>, path: web::Path<String>) -> Jieto
     ApiResult::ok_data(result)
 }
 
-// #[scheduled("*/5 * * * * *")]
-// async fn health_check_task() {
-//     println!("Health check running every 5 seconds");
-// }
+#[scheduled("*/5 * * * * *")]
+async fn health_check_task() {
+    println!("Health check running every 5 seconds");
+}
+
+
+
+#[derive(Default)]
+struct ApplicationInit;
+impl AppInitializing for  ApplicationInit{
+    fn initializing(&self) {
+        println!("✨ Application initializing...");
+    }
+}
+
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    jieto_web_start(
-        "application.toml",
-        || {
-            Box::pin(async {
-                println!("✨ Application initializing...");
-            })
-        },
-        |cfg| {
-            cfg.service(hello).service(redis_test);
-        },
-        |scheduler| async move {
-            // scheduler.register_task(task!(health_check_task)).await.ok();
-        },
-    )
-    .await?;
+    Application::new(| cfg|{
+        cfg.service(hello);
+    }).bind_init(ApplicationInit)
+        .register_task(task!(health_check_task))
+        .run().await?;
     Ok(())
 }

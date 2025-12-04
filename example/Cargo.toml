@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-jieto-web = { path = "../jieto-web", features = ["database", "mysql", "redis"] }
+jieto-web = { path = "../jieto-web", features = ["database", "mysql", "redis","job"] }
+jieto-macros = {path = "../jieto-macros"}
 tokio = { workspace = true }
 anyhow = { workspace = true }
 actix-web = { workspace = true }
